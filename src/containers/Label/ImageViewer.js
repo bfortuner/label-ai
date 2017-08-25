@@ -34,6 +34,7 @@ class ImageViewer extends Component {
         this.appendLabel = this.appendLabel.bind(this);
         this.buildImages = this.buildImages.bind(this);
         this.submitTags = this.submitTags.bind(this);
+        this.nextBatch = this.nextBatch.bind(this);
     }
 
     allImagesSelected (images){
@@ -197,6 +198,10 @@ class ImageViewer extends Component {
                 images : newProps.images 
             })
         }
+    }
+
+    nextBatch () {
+        this.props.refetchImageList();
     }
 
     render () {
