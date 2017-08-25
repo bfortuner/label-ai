@@ -225,24 +225,6 @@ class Gallery extends Component {
         return displayTags;
     }
 
-    buildImages (images) {
-        var items = images.toArray().slice();
-        var item;
-        for (var t in items) {
-            item = items[t]
-            item.id = item.get('id');
-            item.key = item.get('id');
-            item.src = item.get('src');
-            item.thumbnail = item.get('thumbnail');
-            item.thumbnailWidth = item.get('thumbnailWidth');
-            item.thumbnailHeight = item.get('thumbnailHeight');
-            item.tags = this.buildTags(item.get('tags'));
-            item.modelTags = this.buildTags(item.get('modelTags'));
-            item.isSelected = false;
-        }
-        return items;
-    }
-
     renderThumbs (containerWidth, images = this.state.images) {
         console.log("renderThumbsL", images.length);
         if (!images || images.size == 0) return [];

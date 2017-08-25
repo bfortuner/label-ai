@@ -1,9 +1,12 @@
+import os
 from collections import namedtuple, OrderedDict
 from graphql import (
     GraphQLField, GraphQLNonNull, GraphQLArgument,
     GraphQLObjectType, GraphQLList, GraphQLBoolean, GraphQLString,
     GraphQLSchema, GraphQLInt
 )
+
+import config as cfg
 
 
 Todo = namedtuple('Todo', 'id text completed')
@@ -89,23 +92,26 @@ todo_data = OrderedDict({
     '2': Todo(id='2', text='Quit TPP', completed=False)
 })
 
+def img_url(fname):
+    return cfg.IMG_ENDPOINT + '/{:s}'.format(fname)
+
 image_data = OrderedDict({
     '1': Image(
         id='1',
-        src="https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-        thumbnail="https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-        thumbnailWidth=320,
-        thumbnailHeight=174,
+        src=img_url("cat.7407.jpg"),
+        thumbnail=img_url("cat.7407.jpg"),
+        thumbnailWidth=300,
+        thumbnailHeight=300,
         tags=["Nature"],
         caption="After Rain (Jeshu John - designerspics.com)",
         modelTags=[]
     ),
     '2': Image(
         id='2',
-        src="https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-        thumbnail="https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_n.jpg",
-        thumbnailWidth=320,
-        thumbnailHeight=174,
+        src=img_url("cat.7407.jpg"),
+        thumbnail=img_url("cat.7407.jpg"),
+        thumbnailWidth=300,
+        thumbnailHeight=300,
         tags=["Nature"],
         caption="After Rain (Jeshu John - designerspics.com)",
         modelTags=[]
@@ -173,7 +179,7 @@ def update_tags(id_, tags):
     image_data[id_] = img._replace(tags=tags)
     print("ID",image_data)
     img = image_data.get(id_)
-    print("I", img, type(img))
+    print("I",  img, type(img))
     return img
 
 
