@@ -153,6 +153,7 @@ IMAGE_DATA = OrderedDict({
 
 def make_image(id_, meta):
     img_meta = data.get_row_by_id(meta, id_)
+    print("IMG_META", img_meta)
     tags = [] if img_meta is None else img_meta['labels'].split()
     mdl_tags = [] if img_meta is None else img_meta['model_labels'].split()
     img = Image(
@@ -168,11 +169,11 @@ def make_image(id_, meta):
     return img
 
 
-def get_image_data(dset):
+def get_image_data(dset, shuffle=False, limit=20):
     meta = data.load_metadata_df(cfg.METADATA_FPATH)
     fold = data.load_fold(cfg.FOLD_FPATH)
     image_data = {}
-    for id_ in fold[dset][:10]:
+    for id_ in fold[dset][:limit]:
         image_data[id_] = make_image(id_, meta)
     return image_data
 
@@ -208,14 +209,11 @@ def add_image(src, tags, modelTags):
 
 
 def update_tags(id_, tags):
-    image_data = get_image_data(cfg.UNLABELED)
-    print(id_, tags)
-    img = image_data[id_]
-    image_data[id_] = img._replace(tags=tags)
-    print("ID",image_data)
-    img = image_data.get(id_)
-    print("I",  img, type(img))
-    return img
+    meta = data.load_metadata_df(cfg.METADATA_FPATH)
+    tags = ' '.join(tags)
+    model_tags = ''
+    data.insert_or_append_df(meta, id_, [tags, model_tags])
+    data.save_metadata_df(meta, cfg.METADATA_FPATH)
 
 
 QueryRootType = GraphQLObjectType(

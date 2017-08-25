@@ -24,7 +24,7 @@ def save_metadata_df(df, fpath):
 
 
 def get_row_by_id(df, id_):
-    if id_ in df:
+    if id_ in df.index:
         return df.loc[id_]
     return None
 
