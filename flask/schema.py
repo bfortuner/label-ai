@@ -171,9 +171,9 @@ def update_tags(id_, tags):
     print(id_, tags)
     img = image_data[id_]
     image_data[id_] = img._replace(tags=tags)
-    print(image_data)
+    print("ID",image_data)
     img = image_data.get(id_)
-    print(img, type(img))
+    print("I", img, type(img))
     return img
 
 

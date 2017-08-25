@@ -33,9 +33,8 @@ class ImageViewer extends Component {
         this.overwriteLabel = this.overwriteLabel.bind(this);
         this.appendLabel = this.appendLabel.bind(this);
         this.onClick = this.onClick.bind(this);
-        this.buildImage = this.buildImage.bind(this);
         this.buildImages = this.buildImages.bind(this);
-
+        this.submitTags = this.submitTags.bind(this);
     }
 
     allImagesSelected (images){
@@ -81,8 +80,12 @@ class ImageViewer extends Component {
         return labels
     }
 
+    getUniqueLabelNames(labelNames) {
+        return Array.from(new Set(labelNames));
+    }
+
     makeLabels(labelNames) {
-        labelNames = Array.from(new Set(labelNames));
+        labelNames = this.getUniqueLabelNames(labelNames);
         var labels = [];
         for(var i = 0; i < labelNames.length; i++) {
             if (labels.indexOf(labelNames[i]) === -1)
@@ -107,10 +110,11 @@ class ImageViewer extends Component {
 
     overwriteLabel () {
        var images = this.state.images.slice();
-       var labels = this.makeLabels(this.getSelectedLabels());
+       var labelNames = this.getSelectedLabels();
         for(var i = 0; i < images.length; i++) {
             if(images[i].isSelected === true)
-                images[i].tags = labels;
+                images[i].tags = labelNames;
+                images[i].displayTags = this.makeLabels(labelNames);
         }
         this.setState({
             images: images
@@ -123,11 +127,13 @@ class ImageViewer extends Component {
          for(var i = 0; i < images.length; i++) {
              if(images[i].isSelected === true) {
                 if (images[i].tags == null) { 
-                    images[i].tags = this.makeLabels(labelNames);                    
+                    images[i].tags = labelNames;
+                    images[i].displayTags = this.makeLabels(labelNames);                     
                 } else {
-                    var current = this.getNamesFromLabels(images[i].tags);
-                    var joined = current.concat(labelNames);
-                    images[i].tags = this.makeLabels(joined);
+                    var joined = images[i].tags.concat(labelNames);
+                    joined = this.getUniqueLabelNames(joined);
+                    images[i].tags = joined;
+                    images[i].displayTags = this.makeLabels(joined);
                 }
              }
          }
@@ -158,6 +164,16 @@ class ImageViewer extends Component {
         });
     }
 
+    submitTags() {
+        console.log("submitting tags");
+        var items = this.state.images.slice();
+        console.log("ITEMSTOSUBMIT", items);
+        for (var i = 0; i < items.length; i++) {
+            console.log(items[i].id, items[i].tags);
+            this.props.updateImageTags(items[i].id, items[i].tags);
+        }
+    }
+
     updateLabels (selected) {
         this.setState({
             selectedLabels: selected
@@ -171,44 +187,24 @@ class ImageViewer extends Component {
         return displayTags;
     }
 
-    buildImage (image) {
-        // var items = images.toArray().slice();
-        var item = image;
-        item.id = item.get('id');
-        item.key = item.get('id');
-        item.src = item.get('src');
-        item.thumbnail = item.get('thumbnail');
-        item.thumbnailWidth = item.get('thumbnailWidth');
-        item.thumbnailHeight = item.get('thumbnailHeight');
-        item.tags = this.buildTags(item.get('tags'));
-        item.modelTags = this.buildTags(item.get('modelTags'));
-        item.isSelected = false;
-
-        this.imgs[item.id] = item;
-        return item;
-    }
-
     buildImages (imageList) {
         if (imageList == null) {
             return [];
         }
-        console.log("B",imageList);
-        console.log(typeof imageList);
-        var items = imageList;//.slice();
-        var item;
-        for (var t in items) {
-            item = items[t]
-            item.id = item.get('id');
-            item.key = item.get('id');
-            item.src = item.get('src');
-            item.thumbnail = item.get('thumbnail');
-            item.thumbnailWidth = item.get('thumbnailWidth');
-            item.thumbnailHeight = item.get('thumbnailHeight');
-            item.tags = this.buildTags(item.get('tags'));
-            item.modelTags = this.buildTags(item.get('modelTags'));
-            // item.isSelected = true;
+        for (var i =0; i < imageList.length; i++) {
+            imageList[i].displayTags = this.buildTags(imageList[i].tags);
+            // item = items[t]
+            // item.id = item.get('id');
+            // item.key = item.get('id');
+            // item.src = item.get('src');
+            // item.thumbnail = item.get('thumbnail');
+            // item.thumbnailWidth = item.get('thumbnailWidth');
+            // item.thumbnailHeight = item.get('thumbnailHeight');
+            // item.tags = this.buildTags(item.get('tags'));
+            // item.modelTags = this.buildTags(item.get('modelTags'));
+            // // item.isSelected = true;
         }
-        return items;
+        return imageList;
     }
     
     componentWillReceiveProps(newProps){
@@ -247,6 +243,10 @@ class ImageViewer extends Component {
                     onClick={this.nextBatch}>
                     Next
                 </button>
+                <button
+                    onClick={this.submitTags}>
+                    Submit
+                </button>
                 <br/>
                 <LabelSelector
                     options={this.state.labelOptions}
@@ -260,7 +260,7 @@ class ImageViewer extends Component {
                     border: "1px solid #ddd",
                     overflow: "auto"}}>
                  <Gallery
-                    images={shuffleArray(images)}
+                    images={this.buildImages(images)}
                     onSelectImage={this.onSelectImage}
                     showLightboxThumbnails={true}
                     enableLightbox={true}/> 
@@ -526,6 +526,15 @@ function shuffleArray (array) {
   }
 `;
 
+const updateTagsMutation = gql`
+mutation updateImageTags($id: String!, $tags: [String!]) {
+    updateImageTags(id: $id, tags: $tags) {
+      id
+      tags
+    }
+  }
+`;
+
 const todoListQuery = gql`
 query TodoListQuery {
   todoList {
@@ -546,6 +555,8 @@ mutation toggleTodo($id: String!) {
 }
 `;
 
+
+
 function convert (array) {
     for (var i = array.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -562,19 +573,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       toggleTodo: ownProps.toggleTodo,
       refetchTodoList: ownProps.refetchTodoList,
       images: ownProps.images,
+      updateImageTags: ownProps.updateImageTags,
       refetchImageList: ownProps.refetchImageList
     });
   };
-
-
-// export default graphql(gql`
-//   query TodoAppQuery {
-//     todos {
-//       id
-//       text
-//     }
-//   }
-// `)(TodoApp);
 
 const mapStateToProps = function(state){
     return {
@@ -616,6 +618,17 @@ export default compose(
         };
       }
     }),
+    graphql(updateTagsMutation, {
+        props: ({ ownProps, mutate }) => {
+          return {
+            updateImageTags: (id, tags) => {
+              mutate({ variables: { id, tags } }).then(() => {
+                ownProps.refetchImageList();
+              });
+            }
+          };
+        }
+      }),
     connect(null, null, mergeProps)
 )(ImageViewer);
 

@@ -100,8 +100,9 @@ class Image extends Component {
     }
 
     render () {
-        var tags = (typeof this.props.item.tags === 'undefined') ? <noscript/> :
-                this.props.item.tags.map((tag) => {
+        
+        var tags = (typeof this.props.item.displayTags === 'undefined') ? <noscript/> :
+                this.props.item.displayTags.map((tag) => {
                     return <div title={tag.title}
                     key={"tag-"+tag.value}
                     style={{display: "inline-block",
