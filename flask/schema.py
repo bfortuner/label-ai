@@ -1,4 +1,5 @@
 import os
+import random
 from collections import namedtuple, OrderedDict
 from graphql import (
     GraphQLField, GraphQLNonNull, GraphQLArgument,
@@ -172,8 +173,13 @@ def make_image(id_, meta):
 def get_image_data(dset, shuffle=False, limit=20):
     meta = data.load_metadata_df(cfg.METADATA_FPATH)
     fold = data.load_fold(cfg.FOLD_FPATH)
+    
+    ids = fold[dset]
+    if shuffle:
+        random.shuffle(ids)
+    
     image_data = {}
-    for id_ in fold[dset][:limit]:
+    for id_ in ids[:limit]:
         image_data[id_] = make_image(id_, meta)
     return image_data
 
@@ -182,7 +188,8 @@ def get_image_data(dset, shuffle=False, limit=20):
 # Images
 
 def get_image_list():
-    image_data = get_image_data(cfg.UNLABELED)
+    image_data = get_image_data(cfg.UNLABELED, shuffle=True, 
+                                limit=cfg.BATCH_SIZE)
     return ImageList(images=image_data.keys())
 
 
