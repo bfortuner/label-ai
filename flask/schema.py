@@ -40,13 +40,15 @@ TodoListType = GraphQLObjectType(
         )
     }
 )
-            # src: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-            # thumbnail: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-            # thumbnailWidth: 320,
-            # thumbnailHeight: 174,
-            # tags: [{value: "Nature", title: "Nature"}, {value: "Flora", title: "Flora"}],
-            # caption: "After Rain (Jeshu John - designerspics.com)",
-            # isSelected: true
+
+## Example
+# src: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
+# thumbnail: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
+# thumbnailWidth: 320,
+# thumbnailHeight: 174,
+# tags: [{value: "Nature", title: "Nature"}, {value: "Flora", title: "Flora"}],
+# caption: "After Rain (Jeshu John - designerspics.com)",
+# isSelected: true
 
 
 ImageType = GraphQLObjectType(
@@ -125,38 +127,27 @@ def toggle_todo(id):
     return todo
 
 
-
-
-
-IMAGE_DATA = OrderedDict({
-    "cat.7407": Image(
-        id="cat.7407",
-        src=data.img_url("cat.7407"),
-        thumbnail=data.img_url("cat.7407"),
+def make_unlabeled_img(id_):
+    return Image(
+        id=id_,
+        src=data.img_url(id_),
+        thumbnail=data.img_url(id_),
         thumbnailWidth=cfg.DEFAULT_WIDTH,
         thumbnailHeight=cfg.DEFAULT_HEIGHT,
-        tags=["Nature"],
-        caption="After Rain (Jeshu John - designerspics.com)",
+        tags=[],
+        caption=id_,
         modelTags=[]
-    ),
-    "cat.7408": Image(
-        id="cat.7408",
-        src=data.img_url("cat.7408"),
-        thumbnail=data.img_url("cat.7408"),
-        thumbnailWidth=cfg.DEFAULT_WIDTH,
-        thumbnailHeight=cfg.DEFAULT_HEIGHT,
-        tags=["Nature"],
-        caption="After Rain (Jeshu John - designerspics.com)",
-        modelTags=[]
-    ),
-})
+    )
 
 
-def make_image(id_, meta):
-    img_meta = data.get_row_by_id(meta, id_)
-    print("IMG_META", img_meta)
-    tags = [] if img_meta is None else img_meta['labels'].split()
-    mdl_tags = [] if img_meta is None else img_meta['model_labels'].split()
+def make_image(id_, fold, dset):
+    if dset == cfg.UNLABELED:
+        return make_unlabeled_img(id_)
+    img_meta = fold[dset][id_]
+    print("IM", img_meta)
+    tags = [] if img_meta is None else img_meta['labels']
+    mdl_tags = [] if img_meta is None else img_meta['model_labels']
+    mdl_probs = [] if img_meta is None else img_meta['model_probs']
     img = Image(
         id=id_,
         src=data.img_url(id_),
@@ -164,63 +155,78 @@ def make_image(id_, meta):
         thumbnailWidth=cfg.DEFAULT_WIDTH,
         thumbnailHeight=cfg.DEFAULT_HEIGHT,
         tags=tags,
-        caption="TODO..",
+        caption=id_,
         modelTags=mdl_tags
     )
     return img
 
 
-def get_image_data(dset, shuffle=False, limit=20):
-    meta = data.load_metadata_df(cfg.METADATA_FPATH)
+def get_image_data(fold, dset, shuffle=False, limit=20):
     fold = data.load_fold(cfg.FOLD_FPATH)
-    
-    ids = fold[dset]
+    ids = list(fold[dset].keys())
     if shuffle:
         random.shuffle(ids)
-    
+    print("ID", len(ids))
     image_data = {}
     for id_ in ids[:limit]:
-        image_data[id_] = make_image(id_, meta)
+        image_data[id_] = make_image(id_, fold, dset)
     return image_data
+
+
+def get_random_dset(val_ratio=cfg.VAL_FOLD_RATIO):
+    if random.random() <= val_ratio:
+        return cfg.VAL
+    return cfg.TRAIN
+
+
+def save_image_data(fold, id_, tags, dset=None, 
+                    model_tags=None, model_probs=None):
+    dset = get_random_dset() if dset is None else dset
+    entry = data.make_entry(tags, model_tags, model_probs)
+    fold[dset][id_] = entry
+    data.save_fold(cfg.FOLD_FPATH, fold)
 
 
 
 # Images
 
-def get_image_list():
-    image_data = get_image_data(cfg.UNLABELED, shuffle=True, 
+def get_image_list(dset=cfg.UNLABELED):
+    fold = data.load_fold(cfg.FOLD_FPATH)
+    image_data = get_image_data(fold, dset, shuffle=True, 
                                 limit=cfg.BATCH_SIZE)
+    print(image_data.keys())
     return ImageList(images=image_data.keys())
 
 
-def get_image(id_):
-    meta = data.load_metadata_df(cfg.METADATA_FPATH)
-    return make_image(id_, meta)
+def get_image(id_, dset=cfg.UNLABELED):
+    fold = data.load_fold(cfg.FOLD_FPATH)
+    return make_image(id_, fold, dset)
 
 
 def get_images(image_list):
     return map(get_image, image_list.images)
 
 
-def get_image_single():
-    image_data = get_image_data(cfg.UNLABELED)
-    return image_data['1']
+def get_image_single(id_, dset=cfg.UNLABELED):
+    print('get image single')
+    fold = data.load_fold(cfg.FOLD_FPATH)
+    return make_image(id_, fold, dset)
 
 
-def add_image(src, tags, modelTags):
-    image_data = get_image_data(cfg.UNLABELED)
-    image = Image(id=str(len(image_data) + 1), src=src, 
-                  tags=tags, modelTags=modelTags)
+def add_image(src, tags, modelTags, id_=None, dset=None):
+    fold = data.load_fold(cfg.FOLD_FPATH)
+    image_data = get_image_data(fold, dset, shuffle=False, limit=20)
+    image = Image(id=id_, src=src, tags=tags, modelTags=modelTags)
     image_data[image.id] = image
     return image
 
 
+#meta = data.load_metadata_df(cfg.METADATA_FPATH)
 def update_tags(id_, tags):
-    meta = data.load_metadata_df(cfg.METADATA_FPATH)
-    tags = ' '.join(tags)
-    model_tags = ''
-    data.insert_or_append_df(meta, id_, [tags, model_tags])
-    data.save_metadata_df(meta, cfg.METADATA_FPATH)
+    print('updating tags')
+    if len(tags) > 0:
+        fold = data.load_fold(cfg.FOLD_FPATH)
+        save_image_data(fold, id_, tags)
 
 
 QueryRootType = GraphQLObjectType(
@@ -244,7 +250,12 @@ QueryRootType = GraphQLObjectType(
         ),
         'image': GraphQLField(
             ImageType,
-            resolver=lambda root, args, *_: get_image_single(),
+            args={
+                'id': GraphQLArgument(GraphQLString)
+            },
+            resolver=lambda root, args, *_: get_image_single(
+                args.get('id')
+            ),
         ),
         'imageList': GraphQLField(
             ImageListType,
@@ -295,3 +306,6 @@ MutationRootType = GraphQLObjectType(
 )
 
 Schema = GraphQLSchema(QueryRootType, MutationRootType)
+
+# if not os.path.exists(cfg.FOLD_FPATH):
+#     _ = data.init_dataset(cfg.MEDIA_PATH, cfg.FOLD_FPATH)

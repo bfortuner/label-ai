@@ -161,13 +161,12 @@ class ImageViewer extends Component {
     }
 
     submitTags() {
-        console.log("submitting tags");
         var items = this.state.images.slice();
-        console.log("ITEMSTOSUBMIT", items);
         for (var i = 0; i < items.length; i++) {
             console.log(items[i].id, items[i].tags);
             this.props.updateImageTags(items[i].id, items[i].tags);
         }
+        this.nextBatch();
     }
 
     updateLabels (selected) {
@@ -358,7 +357,7 @@ export default compose(
           return {
             updateImageTags: (id, tags) => {
               mutate({ variables: { id, tags } }).then(() => {
-                ownProps.refetchImageList();
+                return;
               });
             }
           };
