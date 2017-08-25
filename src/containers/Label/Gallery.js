@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import Lightbox from 'react-images';
 import Image from './Image.js';
-import IPropTypes from 'react-immutable-proptypes';
+
 
 class Gallery extends Component {
     constructor (props) {
@@ -153,10 +153,8 @@ class Gallery extends Component {
     }
 
     calculateCutOff (len, delta, items) {
-        console.log("cutoff", item);
         var cutoff = [];
         var cutsum = 0;
-        console.log("scalewidth", item.scaletwidth);
         for(var i in items) {
             var item = items[i];
             var fractOfLen = item.scaletwidth / len;
@@ -176,16 +174,12 @@ class Gallery extends Component {
     }
 
     buildImageRow (items, containerWidth) {
-        console.log("buildImageRow", items);
         var row = [];
         var len = 0;
         var imgMargin = 2 * this.props.margin;
         while(items.length > 0 && len < containerWidth) {
-            console.log("buildImageRowLoop", items);
             var item = items.shift();
-            console.log("buildImageRowLoopItem", item);
             row.push(item);
-            console.log("buildImageRowLoopWidth", item.scaletwidth);
             len += (item.scaletwidth + imgMargin);
         }
 
@@ -210,32 +204,17 @@ class Gallery extends Component {
     }
 
     setThumbScale (item) {
-        console.log("setThumbScale", item);
-        // console.log("itemThumW", item.get('thumbnailWidth'));
-        // console.log("itemThumH", item.get('thumbnailHeight'));
         item.scaletwidth =
             Math.floor(this.props.rowHeight
                        * (item.thumbnailWidth / item.thumbnailHeight));
     }
 
-    buildTags (tags) {
-        var displayTags = []
-        for (var i = 0; i<tags.length; i++)
-            displayTags.push({value: tags[i], title: tags[i]})
-        return displayTags;
-    }
-
     renderThumbs (containerWidth, images = this.state.images) {
-        console.log("renderThumbsL", images.length);
-        if (!images || images.size == 0) return [];
+        if (!images) return [];
         if (containerWidth === 0) return [];
-        // console.log("IMgArry", images.toArray()[0].get('src'));
-        var items = images.slice(); //.toArray().slice(); //this.buildImages(images);
-        console.log("renderThumbsItems", items);
-        console.log("ItemsLength", items.length);
+
+        var items = images.slice();
         for (var t in items) {
-            console.log("T",t);
-            console.log("renderThumbsLoop", items[t]);
             this.setThumbScale(items[t]);
         }
 
@@ -307,33 +286,23 @@ class Gallery extends Component {
 Gallery.displayName = 'Gallery';
 
 Gallery.propTypes = {
-    images: PropTypes.arrayOf(PropTypes.shape({
-        src: PropTypes.string.isRequired,
-        thumbnail: PropTypes.string,
-        caption: PropTypes.string,
-        thumbnailWidth: PropTypes.number,
-        thumbnailHeight: PropTypes.number,
-        tags: PropTypes.arrayOf(PropTypes.string),
-        modelTags: PropTypes.arrayOf(PropTypes.string),
-    })).isRequired,
-
-    // images: PropTypes.arrayOf(
-    //     PropTypes.shape({
-    //         src: PropTypes.string.isRequired,
-    //         thumbnail: PropTypes.string.isRequired,
-    //         srcset: PropTypes.array,
-    //         caption: PropTypes.string,
-    //         tags: PropTypes.arrayOf(
-    //             PropTypes.shape({
-    //                 value: PropTypes.string.isRequired,
-    //                 title: PropTypes.string.isRequired
-    //             })
-    //         ),
-    //         thumbnailWidth: PropTypes.number.isRequired,
-    //         thumbnailHeight: PropTypes.number.isRequired,
-    //         isSelected: PropTypes.bool
-    //     })
-    // ).isRequired,
+    images: PropTypes.arrayOf(
+        PropTypes.shape({
+            src: PropTypes.string.isRequired,
+            thumbnail: PropTypes.string.isRequired,
+            srcset: PropTypes.array,
+            caption: PropTypes.string,
+            tags: PropTypes.arrayOf(
+                PropTypes.shape({
+                    value: PropTypes.string.isRequired,
+                    title: PropTypes.string.isRequired
+                })
+            ),
+            thumbnailWidth: PropTypes.number.isRequired,
+            thumbnailHeight: PropTypes.number.isRequired,
+            isSelected: PropTypes.bool
+        })
+    ).isRequired,
     id: PropTypes.string,
     enableImageSelection: PropTypes.bool,
     onSelectImage: PropTypes.func,

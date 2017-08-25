@@ -172,7 +172,7 @@ def get_image_data(dset):
     meta = data.load_metadata_df(cfg.METADATA_FPATH)
     fold = data.load_fold(cfg.FOLD_FPATH)
     image_data = {}
-    for id_ in fold[dset][:6]:
+    for id_ in fold[dset][:10]:
         image_data[id_] = make_image(id_, meta)
     return image_data
 
