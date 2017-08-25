@@ -7,6 +7,7 @@ from graphql import (
 )
 
 import config as cfg
+import data
 
 
 Todo = namedtuple('Todo', 'id text completed')
@@ -92,31 +93,6 @@ todo_data = OrderedDict({
     '2': Todo(id='2', text='Quit TPP', completed=False)
 })
 
-def img_url(fname):
-    return cfg.IMG_ENDPOINT + '/{:s}'.format(fname)
-
-image_data = OrderedDict({
-    '1': Image(
-        id='1',
-        src=img_url("cat.7407.jpg"),
-        thumbnail=img_url("cat.7407.jpg"),
-        thumbnailWidth=300,
-        thumbnailHeight=300,
-        tags=["Nature"],
-        caption="After Rain (Jeshu John - designerspics.com)",
-        modelTags=[]
-    ),
-    '2': Image(
-        id='2',
-        src=img_url("cat.7407.jpg"),
-        thumbnail=img_url("cat.7407.jpg"),
-        thumbnailWidth=300,
-        thumbnailHeight=300,
-        tags=["Nature"],
-        caption="After Rain (Jeshu John - designerspics.com)",
-        modelTags=[]
-    ),
-})
 
 def get_todo_list():
     print("getting todo list")
@@ -148,14 +124,70 @@ def toggle_todo(id):
     return todo
 
 
+
+
+
+IMAGE_DATA = OrderedDict({
+    "cat.7407": Image(
+        id="cat.7407",
+        src=data.img_url("cat.7407"),
+        thumbnail=data.img_url("cat.7407"),
+        thumbnailWidth=cfg.DEFAULT_WIDTH,
+        thumbnailHeight=cfg.DEFAULT_HEIGHT,
+        tags=["Nature"],
+        caption="After Rain (Jeshu John - designerspics.com)",
+        modelTags=[]
+    ),
+    "cat.7408": Image(
+        id="cat.7408",
+        src=data.img_url("cat.7408"),
+        thumbnail=data.img_url("cat.7408"),
+        thumbnailWidth=cfg.DEFAULT_WIDTH,
+        thumbnailHeight=cfg.DEFAULT_HEIGHT,
+        tags=["Nature"],
+        caption="After Rain (Jeshu John - designerspics.com)",
+        modelTags=[]
+    ),
+})
+
+
+def make_image(id_, meta):
+    img_meta = data.get_row_by_id(meta, id_)
+    tags = [] if img_meta is None else img_meta['labels'].split()
+    mdl_tags = [] if img_meta is None else img_meta['model_labels'].split()
+    img = Image(
+        id=id_,
+        src=data.img_url(id_),
+        thumbnail=data.img_url(id_),
+        thumbnailWidth=cfg.DEFAULT_WIDTH,
+        thumbnailHeight=cfg.DEFAULT_HEIGHT,
+        tags=tags,
+        caption="TODO..",
+        modelTags=mdl_tags
+    )
+    return img
+
+
+def get_image_data(dset):
+    meta = data.load_metadata_df(cfg.METADATA_FPATH)
+    fold = data.load_fold(cfg.FOLD_FPATH)
+    image_data = {}
+    for id_ in fold[dset][:6]:
+        image_data[id_] = make_image(id_, meta)
+    return image_data
+
+
+
 # Images
 
 def get_image_list():
+    image_data = get_image_data(cfg.UNLABELED)
     return ImageList(images=image_data.keys())
 
 
 def get_image(id_):
-    return image_data.get(id_)
+    meta = data.load_metadata_df(cfg.METADATA_FPATH)
+    return make_image(id_, meta)
 
 
 def get_images(image_list):
@@ -163,10 +195,12 @@ def get_images(image_list):
 
 
 def get_image_single():
+    image_data = get_image_data(cfg.UNLABELED)
     return image_data['1']
 
 
 def add_image(src, tags, modelTags):
+    image_data = get_image_data(cfg.UNLABELED)
     image = Image(id=str(len(image_data) + 1), src=src, 
                   tags=tags, modelTags=modelTags)
     image_data[image.id] = image
@@ -174,6 +208,7 @@ def add_image(src, tags, modelTags):
 
 
 def update_tags(id_, tags):
+    image_data = get_image_data(cfg.UNLABELED)
     print(id_, tags)
     img = image_data[id_]
     image_data[id_] = img._replace(tags=tags)
