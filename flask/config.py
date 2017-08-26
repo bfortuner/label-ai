@@ -1,6 +1,7 @@
 
 import os
 
+#ENDPOINT = 'http://24.5.150.30:5000'
 ENDPOINT = 'http://10.0.0.21:5000'
 IMG_ENDPOINT = ENDPOINT + '/image'
 
@@ -18,5 +19,5 @@ IMG_EXT = '.jpg'
 
 DEFAULT_WIDTH = 300
 DEFAULT_HEIGHT = 300
-BATCH_SIZE = 50
+BATCH_SIZE = 25
 VAL_FOLD_RATIO = 0.2

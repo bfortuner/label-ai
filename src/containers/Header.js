@@ -9,18 +9,16 @@ class Header extends Component {
         <div className="ui container">
           <Link to="/" className="header item">
             <img src={logo} className="app-logo" alt="logo"/>
-            Example App
+            Label.ai
           </Link>
-          <Link to="/" className="item">Home</Link>
-          <Link to="/todo" className="item">Todo</Link>
-          <Link to="/remote" className="item">Todo (Remote)</Link>
-          <Link to="/label" className="item">Label</Link>
+          <Link to="/label" className="item">Live Demo</Link>
+          <Link to="/label" className="item">Download</Link>
           <div className="ui simple dropdown item">
-            Dropdown <i className="dropdown icon"/>
+            New Project <i className="dropdown icon"/>
             <div className="menu">
-              <Link className="item">Link Item 1</Link>
-              <Link className="item">Link Item 2</Link>
-              <div className="divider"/>
+            <Link to="/label" className="item">Classification</Link>
+            <Link to="/label" className="item">Segmentation</Link>
+              {/* <div className="divider"/>
               <div className="header">Header Item</div>
               <div className="item">
                 <i className="dropdown icon"/>
@@ -30,7 +28,7 @@ class Header extends Component {
                   <Link className="item">Link Item 2</Link>
                 </div>
               </div>
-              <Link className="item">Link Item</Link>
+              <Link className="item">Link Item</Link> */}
             </div>
           </div>
         </div>

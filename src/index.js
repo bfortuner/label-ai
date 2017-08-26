@@ -24,25 +24,19 @@ const initialState = {
 
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({ 
-    uri: 'http://10.0.0.21:5000/graphql' 
+      // uri: 'http://24.5.150.30:5000/graphql'
+      uri: 'http://10.0.0.21:5000/graphql' 
   })
 });
 const store = configureStore(initialState, client);
 const history = syncHistoryWithStore(browserHistory, store)
 
-// ReactDOM.render(
-//   <ApolloProvider client={client}>
-//     <ImageViewer/>
-//   </ApolloProvider>,
-//   document.getElementById('root'),
-// );
 
 ReactDOM.render(
   <ApolloProvider store={store} client={client}>
     <Router history={history}>
       <Route path="/" component={App}>
         <IndexRoute component={HomeApp}/>
-        <Route path="todo" component={TodoApp}/>
         <Route path="remote" component={RemoteTodoApp}/>
         <Route path="label" component={ImageViewer}/>
       </Route>

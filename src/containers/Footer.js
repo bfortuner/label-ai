@@ -8,35 +8,34 @@ class Footer extends Component {
         <div className="ui center aligned container">
           <div className="ui stackable inverted divided grid">
             <div className="three wide column">
-              <h4 className="ui inverted header">Group 1</h4>
+              <h4 className="ui inverted header">Features</h4>
               <div className="ui inverted link list">
-                <a href="#" className="item">Link One</a>
-                <a href="#" className="item">Link Two</a>
-                <a href="#" className="item">Link Three</a>
-                <a href="#" className="item">Link Four</a>
+                <a href="#" className="item">Classification</a>
+                <a href="#" className="item">Object Detection</a>
+                <a href="#" className="item">Segmentation</a>
+                <a href="#" className="item">NLP and Text</a>
               </div>
             </div>
             <div className="three wide column">
-              <h4 className="ui inverted header">Group 2</h4>
+              <h4 className="ui inverted header">Solutions</h4>
               <div className="ui inverted link list">
-                <a href="#" className="item">Link One</a>
-                <a href="#" className="item">Link Two</a>
-                <a href="#" className="item">Link Three</a>
-                <a href="#" className="item">Link Four</a>
+                <a href="#" className="item">Pricing</a>
+                <a href="#" className="item">Downloads</a>
+                <a href="#" className="item">Web version</a>
+                <a href="#" className="item">Live Demo</a>
               </div>
             </div>
             <div className="three wide column">
-              <h4 className="ui inverted header">Group 3</h4>
+               <h4 className="ui inverted header">Company</h4>
               <div className="ui inverted link list">
-                <a href="#" className="item">Link One</a>
-                <a href="#" className="item">Link Two</a>
-                <a href="#" className="item">Link Three</a>
-                <a href="#" className="item">Link Four</a>
-              </div>
+                <a href="#" className="item">About us</a>
+                <a href="#" className="item">Careers</a>
+                <a href="#" className="item">Contact us</a>
+              </div> 
             </div>
             <div className="seven wide column">
-              <h4 className="ui inverted header">Footer Header</h4>
-              <p>Extra space for a call to action inside the footer that could help re-engage users.</p>
+              <h4 className="ui inverted header">Try our live demo!</h4>
+              <p>Classify 20,000 cats and dogs in 5 minutes.</p>
             </div>
           </div>
           <div className="ui inverted section divider"/>

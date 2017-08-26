@@ -62,20 +62,21 @@ class LabelSelector extends Component {
 						<input
 							type="radio"
 							className="checkbox-control"
-							checked={multi}
-							onChange={() => this.toggleMulti(true)}
-						/>
-						<span className="checkbox-label">Multiselect</span>
-					</label>
-					<label className="checkbox">
-						<input
-							type="radio"
-							className="checkbox-control"
 							checked={!multi}
 							onChange={() => this.toggleMulti(false)}
 						/>
 						<span className="checkbox-label">Single Value</span>
 					</label>
+					<label className="checkbox">
+						<input
+							type="radio"
+							className="checkbox-control"
+							checked={multi}
+							onChange={() => this.toggleMulti(true)}
+						/>
+						<span className="checkbox-label">Multiselect</span>
+					</label>
+
 				</div>
 			</div>
 		);
@@ -99,7 +100,7 @@ LabelSelector.propTypes = {
 LabelSelector.defaultProps = {
 	hint: undefined,
 	label: undefined,
-	multi: true,
+	multi: false,
 	multiValue: [],
 	options: [
 		{ value: 'R', label: 'Red' },
