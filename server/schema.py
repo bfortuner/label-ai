@@ -4,14 +4,14 @@ from collections import namedtuple, OrderedDict
 from graphql import (
     GraphQLField, GraphQLNonNull, GraphQLArgument,
     GraphQLObjectType, GraphQLList, GraphQLBoolean, GraphQLString,
-    GraphQLSchema, GraphQLInt
+    GraphQLSchema, GraphQLInt, GraphQLFloat
 )
 
 import config as cfg
 import data
 
 
-Image = namedtuple('Image', 'id src thumbnail thumbnailWidth thumbnailHeight tags caption modelTags')
+Image = namedtuple('Image', 'id src thumbnail thumbnailWidth thumbnailHeight tags caption modelTags modelProbs')
 ImageList = namedtuple('ImageList', 'images') 
 
 ## Example
@@ -50,6 +50,9 @@ ImageType = GraphQLObjectType(
         ),
         'modelTags': GraphQLField(
             GraphQLList(GraphQLString)
+        ),
+        'modelProbs': GraphQLField(
+            GraphQLList(GraphQLFloat)
         )
     }
 )
@@ -74,7 +77,8 @@ def make_unlabeled_img(id_):
         thumbnailHeight=cfg.DEFAULT_HEIGHT,
         tags=[],
         caption=id_,
-        modelTags=[]
+        modelTags=[],
+        modelProbs=[]
     )
 
 
@@ -82,7 +86,6 @@ def make_image(id_, fold, dset):
     if dset == cfg.UNLABELED:
         return make_unlabeled_img(id_)
     img_meta = fold[dset][id_]
-    print("IM", img_meta)
     tags = [] if img_meta is None else img_meta['labels']
     mdl_tags = [] if img_meta is None else img_meta['model_labels']
     mdl_probs = [] if img_meta is None else img_meta['model_probs']
@@ -94,7 +97,8 @@ def make_image(id_, fold, dset):
         thumbnailHeight=cfg.DEFAULT_HEIGHT,
         tags=tags,
         caption=id_,
-        modelTags=mdl_tags
+        modelTags=mdl_tags,
+        modelProbs=mdl_probs
     )
     return img
 

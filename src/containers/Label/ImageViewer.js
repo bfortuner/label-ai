@@ -6,15 +6,10 @@ import LabelSelector from './LabelSelector.js'
 import { compose, graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import './normalize.css';
-import './App.css';
+import './index.css';
 import './github-light.css';
 import { Divider } from 'semantic-ui-react';
-import { fromJS } from 'immutable';
-import { connect } from 'react-redux';
-import IPropTypes from 'react-immutable-proptypes';
 import { List } from 'semantic-ui-react';
-import TodoList from '../../components/TodoList';
-import Todo from '../../components/Todo';
 
 
 class ImageViewer extends Component {
@@ -47,10 +42,7 @@ class ImageViewer extends Component {
     }
 
     onSelectImage (index, image) {
-        console.log("STATE", this.state.images);
-        console.log("SelectingOne", image, index);
         var images = this.state.images; //this.buildImages(this.state.images);//.slice();
-        console.log("IMAGES",images);
         var img = images[index];
         if(img.hasOwnProperty("isSelected"))
             img.isSelected = !img.isSelected;
@@ -139,7 +131,6 @@ class ImageViewer extends Component {
      }
 
     onClickSelectAll () {
-        console.log("Selectingall");
         var selectAllChecked = !this.state.selectAllChecked;
         this.setState({
             selectAllChecked: selectAllChecked
@@ -163,7 +154,6 @@ class ImageViewer extends Component {
     submitTags() {
         var items = this.state.images.slice();
         for (var i = 0; i < items.length; i++) {
-            console.log(items[i].id, items[i].tags);
             this.props.updateImageTags(items[i].id, items[i].tags);
         }
         this.nextBatch();
@@ -321,25 +311,6 @@ const updateTagsMutation = gql`
     }
 `;
 
-
-function convert (array) {
-    for (var i = array.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
-    }
-    return array;
-}
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-    return Object.assign({}, ownProps, {
-      images: ownProps.images,
-      updateImageTags: ownProps.updateImageTags,
-      refetchImageList: ownProps.refetchImageList
-    });
-  };
-
 export default compose(
     graphql(imageListQuery, {
         props: ({ ownProps, data }) => {
@@ -348,7 +319,6 @@ export default compose(
             imageListLoading: loading,
             refetchImageList: refetch,
             images: imageList ? imageList.images : [],
-            // images: fromJS(imageList ? imageList.images : []),
           };
         }
     }),
@@ -362,7 +332,6 @@ export default compose(
             }
           };
         }
-      }),
-    connect(null, null, mergeProps)
+      })
 )(ImageViewer);
 
