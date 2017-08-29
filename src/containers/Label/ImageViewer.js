@@ -10,12 +10,15 @@ import './index.css';
 import './github-light.css';
 import { Divider } from 'semantic-ui-react';
 import { List } from 'semantic-ui-react';
+// import { PROJECT_NAME } from '../config.js'
 
+console.log(PROJECT_NAME)
+const PROJECT_NAME = 'test_project'
 
 class ImageViewer extends Component {
     constructor(props){
         super(props);
-
+        console.log(props)
         this.state = {
             selectAllChecked: false,
             labelOptions: this.props.labelOptions,
@@ -243,6 +246,8 @@ class ImageViewer extends Component {
 
 ImageViewer.propTypes = {
     images: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        project: PropTypes.string.isRequired,
         src: PropTypes.string.isRequired,
         thumbnail: PropTypes.string,
         caption: PropTypes.string,
@@ -286,10 +291,11 @@ function shuffleArray (array) {
 }
 
 const imageListQuery = gql`
-  query ImageListQuery {
-    imageList {
+query ImageListQuery($project:String!) {
+    imageList(project: $project) {
       images {
         id 
+        project
         src 
         thumbnail 
         thumbnailWidth 
@@ -303,24 +309,26 @@ const imageListQuery = gql`
 `;
 
 const updateTagsMutation = gql`
-    mutation updateImageTags($id: String!, $tags: [String!]) {
-        updateImageTags(id: $id, tags: $tags) {
-        id
-        tags
+    mutation updateImageTags($id: String!, $project: String!, $tags: [String!]) {
+        updateImageTags(id: $id, project: $project, tags: $tags) {
+            id
+            project
+            tags
         }
     }
 `;
 
+
 export default compose(
     graphql(imageListQuery, {
-        props: ({ ownProps, data }) => {
-          const { loading, refetch, imageList } = data;
-          return {
+        options: (ownProps) => ({
+            variables: { project: ownProps.project } 
+        }),
+        props: ({ data: { loading, refetch, imageList }}) => ({
             imageListLoading: loading,
             refetchImageList: refetch,
-            images: imageList ? imageList.images : [],
-          };
-        }
+            images: imageList ? imageList.images : []
+        })
     }),
     graphql(updateTagsMutation, {
         props: ({ ownProps, mutate }) => {

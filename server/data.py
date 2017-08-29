@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import time
 import pandas as pd
 from collections import namedtuple, OrderedDict
 
@@ -9,22 +11,31 @@ import config as cfg
 DEFAULT_COLS = ['id','labels','model_labels']
 
 
+def get_fpath(proj_name, fname):
+    return os.path.join(cfg.LABEL_PATH, proj_name, fname)
 
-def init_dataset(inputs_dir, fold_fpath, file_ext, label_names=None):
-    fpaths, ids = utils.files.get_paths_to_files(inputs_dir, strip_ext=True)
+
+def init_dataset(name, input_dir, file_ext, label_names=None):
+    fpaths, ids = utils.files.get_paths_to_files(input_dir, strip_ext=True)
     label_names = [] if label_names is None else label_names
     fold = {
+        'name': name,
         'file_ext': file_ext,
-        'inputs_dir': inputs_dir,
+        'inputs_dir': input_dir,
         'label_names': sorted(label_names),
         'trn': {},
         'val': {},
         'tst': {}, #auditing purposes
-        'unlabeled': {} #these need to be queried and popped by key
+        'unlabeled': {}, #these need to be queried and popped by key
+        'metrics': {},
+        'created': time.strftime("%m/%d/%Y %H:%M:%S", time.localtime())
     }
     for id_ in ids:
         fold['unlabeled'][id_] = id_
-    save_fold(fold_fpath, fold)
+    os.makedirs(os.path.join(cfg.LABEL_PATH, name), exist_ok=True)
+    Path(get_fpath(name, cfg.METRICS_FNAME)).touch()
+    Path(get_fpath(name, cfg.PREDS_FNAME)).touch()
+    utils.files.save_json(get_fpath(name, cfg.FOLD_FNAME), fold)
     return fold
 
 
@@ -40,48 +51,47 @@ def make_entry(labels=None, model_labels=None, model_probs=None):
 
 
 def add_or_update_entry(fold, dset, id_, entry):
+    print("Adding or updating entry")
     fold[dset][id_] = entry
 
 
 def move_unlabeled_to_labeled(fold, dset, id_, entry):
+    print("Moving unlabeled to labeled")
     del fold['unlabeled'][id_]
     add_or_update_entry(fold, dset, id_, entry)
 
 
-def save_fold(fpath, fold):
-    utils.files.save_json(fpath, fold)
-
-    
-def load_fold(fpath):
+def load_fold(name):
+    fpath = get_fpath(name, cfg.FOLD_FNAME)
     return utils.files.load_json(fpath)
+
+def save_fold(fold):
+    fpath = get_fpath(fold.name, cfg.FOLD_FNAME)
+    return utils.files.save_json(fpath, fold)    
 
 
 def img_url(fname):
     return cfg.IMG_ENDPOINT + '/{:s}'.format(fname + cfg.IMG_EXT)
 
 
-def get_stats(project_name):
+def get_img_count(fold, dset):
+    return len(fold[dset].keys())
+
+
+def load_metrics(fpath):
+    if os.path.isfile(fpath):
+        return utils.files.load_json(fpath)
     return {
-        'counts': {
-            'labeled': 20,
-            'model_labeled': 1000,
-            'trn': 20,
-            'val': 1000,
-            'tst': 20
-        },
-        'metrics': {
-            'accuracy': {
-                'trn': .98,
-                'val': .23,
-                'tst': .45
-            },
-            'loss': {
-                'trn': .98,
-                'val': .23,
-                'tst': .45
-            }
-        }
+        "experiments":{}, 
+        "latest":{}
     }
+
+
+def get_metrics(project_name):
+    metrics = load_metrics(get_fpath(
+        name, cfg.METRICS_FNAME))
+    return metrics
+
 
 
 # Pandas 

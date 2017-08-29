@@ -8,6 +8,7 @@ def init_paths(root, dset_types, input_img_exts, target_img_exts):
         'experiments': os.path.join(root, 'experiments'),
         'predictions': os.path.join(root, 'predictions'),
         'submissions': os.path.join(root, 'submissions'),
+        'labels': os.path.join(root, 'labels'),
         'folds': os.path.join(root, 'folds')
     }
     for key in paths:

@@ -40,8 +40,9 @@ def get_fpaths_targs_from_label_fold(fold, dset, label_type='labels'):
     for id_ in fold[dset].keys():
         entry = fold[dset][id_]
         fpath = os.path.join(fold['inputs_dir'], id_ + fold['file_ext'])
-        onehot = convert_tags_to_one_hots(' '.join(entry[label_type]), label_names)
-        onehots = np.append(onehots, np.array([onehot]), axis=0)
+        if dset not in [c.TEST, c.UNLABELED]:
+            onehot = convert_tags_to_one_hots(' '.join(entry[label_type]), label_names)
+            onehots = np.append(onehots, np.array([onehot]), axis=0)
         fpaths.append(fpath)
     return fpaths, onehots
 

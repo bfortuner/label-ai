@@ -7,6 +7,7 @@ from PIL import Image
 from io import StringIO
 
 import config as cfg
+import data
 
 
 def create_app(**kwargs):

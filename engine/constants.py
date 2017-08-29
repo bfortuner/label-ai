@@ -8,6 +8,7 @@ TRAIN = 'trn'
 VAL = 'val'
 TEST = 'tst'
 FULL = 'full'
+UNLABELED = 'unlabeled'
 DSETS = [TRAIN, VAL, TEST, FULL]
 
 # Transforms
