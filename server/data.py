@@ -57,8 +57,8 @@ def add_or_update_entry(fold, dset, id_, entry):
 
 def move_unlabeled_to_labeled(fold, dset, id_, entry):
     print("Moving unlabeled to labeled")
-    del fold['unlabeled'][id_]
     add_or_update_entry(fold, dset, id_, entry)
+    del fold['unlabeled'][id_]
 
 
 def load_fold(name):
@@ -66,7 +66,7 @@ def load_fold(name):
     return utils.files.load_json(fpath)
 
 def save_fold(fold):
-    fpath = get_fpath(fold.name, cfg.FOLD_FNAME)
+    fpath = get_fpath(fold["name"], cfg.FOLD_FNAME)
     return utils.files.save_json(fpath, fold)    
 
 
@@ -83,13 +83,52 @@ def load_metrics(fpath):
         return utils.files.load_json(fpath)
     return {
         "experiments":{}, 
-        "latest":{}
+        "latest":{},
+        "counts":{}
     }
 
 
 def get_metrics(project_name):
     metrics = load_metrics(get_fpath(
-        name, cfg.METRICS_FNAME))
+        project_name, cfg.METRICS_FNAME))
+    return { 
+        "accuracy": metrics['latest']['Accuracy'],
+        "loss": metrics['latest']['Loss'],
+        "counts": metrics["counts"]
+    }
+
+
+def get_img_count(fold, dset):
+    return len(fold[dset].keys())
+
+
+def get_img_counts(proj_name):
+    fold = load_fold(proj_name)
+    return {
+        cfg.TRAIN: get_img_count(fold, cfg.TRAIN),
+        cfg.VAL: get_img_count(fold, cfg.VAL),
+        cfg.TEST: get_img_count(fold, cfg.TEST),
+        cfg.UNLABELED: get_img_count(fold, cfg.UNLABELED)
+    }
+
+
+def load_counts(fpath):
+    if os.path.isfile(fpath):
+        return utils.files.load_json(fpath)
+    return {
+        "experiments":{}, 
+        "latest":{},
+        "counts":{}
+    }
+
+
+def update_counts(project_name):
+    counts = get_img_counts(project_name)
+    metrics_fpath = get_fpath(
+        project_name, cfg.METRICS_FNAME)
+    metrics = load_metrics(metrics_fpath)
+    metrics["counts"] = counts
+    utils.files.save_json(metrics_fpath, metrics)
     return metrics
 
 

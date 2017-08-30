@@ -3,6 +3,10 @@ CLASSIFICATION = 'classification'
 SEGMENTATION = 'segmentation'
 PROJECT_TYPES = [CLASSIFICATION, SEGMENTATION]
 
+METRICS_FNAME = 'metrics.json'
+FOLD_FNAME = 'labels.json'
+PREDS_FNAME = 'predictions.json'
+
 # Datasets
 TRAIN = 'trn'
 VAL = 'val'

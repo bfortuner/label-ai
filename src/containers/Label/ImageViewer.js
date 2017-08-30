@@ -157,7 +157,8 @@ class ImageViewer extends Component {
     submitTags() {
         var items = this.state.images.slice();
         for (var i = 0; i < items.length; i++) {
-            this.props.updateImageTags(items[i].id, items[i].tags);
+            this.props.updateImageTags(items[i].id, 
+                this.props.project, items[i].tags);
         }
         this.nextBatch();
     }
@@ -256,6 +257,16 @@ ImageViewer.propTypes = {
         tags: PropTypes.arrayOf(PropTypes.string),
         modelTags: PropTypes.arrayOf(PropTypes.string),
     })).isRequired,
+    metrics: PropTypes.shape({
+        accuracy: PropTypes.number.isRequired,
+        loss: PropTypes.number.isRequired,
+        counts: PropTypes.shape({
+            trn: PropTypes.number.isRequired,
+            val: PropTypes.number.isRequired,
+            tst: PropTypes.number,
+            unlabeled: PropTypes.number.isRequired,
+        })
+    }),
     labelOptions: PropTypes.arrayOf(
         PropTypes.shape({
             value: PropTypes.string.isRequired,
@@ -290,6 +301,22 @@ function shuffleArray (array) {
     return array;
 }
 
+
+const metricsQuery = gql`
+query MetricsQuery($project:String!) {
+    metrics(project: $project) {
+        accuracy
+        loss
+        counts {
+            trn
+            val
+            tst
+            unlabeled
+        }
+    }
+  }
+`;
+
 const imageListQuery = gql`
 query ImageListQuery($project:String!) {
     imageList(project: $project) {
@@ -319,6 +346,7 @@ const updateTagsMutation = gql`
 `;
 
 
+// http://dev.apollodata.com/react/api-queries.html#graphql-query-options
 export default compose(
     graphql(imageListQuery, {
         options: (ownProps) => ({
@@ -330,16 +358,26 @@ export default compose(
             images: imageList ? imageList.images : []
         })
     }),
+    graphql(metricsQuery, {
+        options: (ownProps) => ({
+            variables: { project: ownProps.project } 
+        }),
+        props: ({ data: { loading, refetch, metrics }}) => ({
+            refetchMetrics: refetch,
+        })
+    }),
     graphql(updateTagsMutation, {
         props: ({ ownProps, mutate }) => {
           return {
-            updateImageTags: (id, tags) => {
-              mutate({ variables: { id, tags } }).then(() => {
-                return;
-              });
+            updateImageTags: (id, project, tags) => {
+                mutate({ 
+                  variables: { id, project, tags } 
+                }).then(() => {
+                    return;
+                });
             }
           };
         }
-      })
+    })
 )(ImageViewer);
 

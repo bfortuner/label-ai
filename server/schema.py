@@ -13,6 +13,8 @@ import data
 
 Image = namedtuple('Image', 'id project src thumbnail thumbnailWidth thumbnailHeight \
                             tags caption modelTags modelProbs')
+Metrics = namedtuple('Metrics', 'accuracy loss counts')
+Counts = namedtuple('Counts', 'trn val tst unlabeled')
 ImageList = namedtuple('ImageList', 'images') 
 
 ## Example
@@ -58,6 +60,39 @@ ImageType = GraphQLObjectType(
         'modelProbs': GraphQLField(
             GraphQLList(GraphQLFloat)
         )
+    }
+)
+
+CountsType = GraphQLObjectType(
+    name='Counts',
+    fields= {
+        'trn': GraphQLField(
+            GraphQLNonNull(GraphQLInt),
+        ),
+        'val': GraphQLField(
+            GraphQLNonNull(GraphQLInt),
+        ),
+        'tst': GraphQLField(
+            GraphQLInt,
+        ),
+        'unlabeled': GraphQLField(
+            GraphQLNonNull(GraphQLInt),
+        )
+    }
+)
+
+MetricsType = GraphQLObjectType(
+    name='Metrics',
+    fields= {
+        'accuracy': GraphQLField(
+            GraphQLNonNull(GraphQLFloat),
+        ),
+        'loss': GraphQLField(
+            GraphQLNonNull(GraphQLFloat),
+        ),
+        'counts': GraphQLField(
+            CountsType
+        ),
     }
 )
 
@@ -107,6 +142,22 @@ def make_image(id_, fold, dset):
     )
 
 
+def get_metrics(project_name):
+    metrics = data.get_metrics(project_name)
+    m = Metrics(
+        accuracy=metrics['accuracy'],
+        loss=metrics['loss'],
+        counts=Counts(
+            trn=metrics['counts']['trn'],
+            val=metrics['counts']['val'],
+            tst=0 if 'tst' not in metrics['counts'] else metrics['counts']['tst'],
+            unlabeled=metrics['counts']['unlabeled']                                    
+        )
+    )
+    print("METRICS", m)
+    return m
+
+
 def get_image_data(fold, dset, shuffle=False, limit=20):
     ids = list(fold[dset].keys())
     if shuffle:
@@ -127,16 +178,15 @@ def save_image_data(fold, id_, tags, dset=None,
                     model_tags=None, model_probs=None):
     dset = get_random_dset() if dset is None else dset
     entry = data.make_entry(tags, model_tags, model_probs)
-    fold[dset][id_] = entry
+    data.move_unlabeled_to_labeled(fold, dset, id_, entry)
     data.save_fold(fold)
+    data.update_counts(fold["name"])
 
 
 def get_image_list(project, dset=cfg.UNLABELED):
-    print("PROJECT", project)
     fold = data.load_fold(project)
     image_data = get_image_data(fold, dset, shuffle=True, 
                                 limit=cfg.BATCH_SIZE)
-    print(image_data)
     return ImageList(images=image_data)
 
 
@@ -167,9 +217,10 @@ def add_image(src, tags, modelTags, id_=None, dset=None):
 
 #meta = data.load_metadata_df(cfg.METADATA_FPATH)
 def update_tags(id_, project, tags):
-    print('updating tags')
+    print('updating tags', id_, project, tags)
     if len(tags) > 0:
         fold = data.load_fold(project)
+        print(fold.keys())
         save_image_data(fold, id_, tags)
 
 
@@ -199,6 +250,15 @@ QueryRootType = GraphQLObjectType(
                 'project': GraphQLArgument(GraphQLString)
             },
             resolver=lambda root, args, *_: get_image_list(
+                args.get('project')
+            ),
+        ),
+        'metrics': GraphQLField(
+            MetricsType,
+            args={
+                'project': GraphQLArgument(GraphQLString)
+            },
+            resolver=lambda root, args, *_: get_metrics(
                 args.get('project')
             ),
         )
