@@ -8,8 +8,12 @@ import gql from 'graphql-tag'
 import './normalize.css';
 import './index.css';
 import './github-light.css';
-import { Divider } from 'semantic-ui-react';
-import { List } from 'semantic-ui-react';
+import { 
+    Table, Progress, Button, Container, 
+    Divider, Grid, Header, Image, Menu, 
+    Segment, List
+} from 'semantic-ui-react'
+
 // import { PROJECT_NAME } from '../config.js'
 
 console.log(PROJECT_NAME)
@@ -18,13 +22,12 @@ const PROJECT_NAME = 'test_project'
 class ImageViewer extends Component {
     constructor(props){
         super(props);
-        console.log(props)
+        console.log("P", props);
         this.state = {
             selectAllChecked: false,
             labelOptions: this.props.labelOptions,
             selectedLabels: this.props.selectedLabels,
         };
-
         this.onSelectImage = this.onSelectImage.bind(this);
         this.getSelectedImages = this.getSelectedImages.bind(this);
         this.onClickSelectAll = this.onClickSelectAll.bind(this);
@@ -193,41 +196,91 @@ class ImageViewer extends Component {
         }
     }
 
+    refreshMetrics() {
+        this.props.refetchMetrics();
+        const { metrics } = this.props;
+        this.setState({
+            labeledCount : metrics.counts.trn + metrics.counts.val,
+            unlabeledCount: metrics.counts.unlabeled,
+            accuracy: metrics.accuracy
+        })   
+    }
+
     nextBatch () {
         this.props.refetchImageList();
+        this.props.refetchMetrics();
     }
 
     render () {
         const { images } = this.props;
         return (
             <div className="ui main container main-content">
-                <h1>Classify images</h1>
-                <button
-                    onClick={this.onClickSelectAll}>
-                    Select all
-                </button>
-                <button
-                    onClick={this.overwriteLabel}>
-                    Overwrite
-                </button>
-                <button
-                    onClick={this.appendLabel}>
-                    Append
-                </button>
-                <button
-                    onClick={this.nextBatch}>
-                    Next
-                </button>
-                <button
-                    onClick={this.submitTags}>
-                    Submit
-                </button>
-                <br/>
-                <LabelSelector
-                    options={this.state.labelOptions}
-                    selected={this.state.selectedLabels}
-                    updateLabels={this.updateLabels.bind(this)}/> 
-                <br/>
+                <Container>
+                    <Header as='h2'>Classify images</Header>
+                    <Grid columns={2} stackable>
+                        <Grid.Row>
+                             <Grid.Column >
+                            <Button.Group  attached='top' widths={1}>
+                                <Button size='big'                              
+                                    onClick={this.onClickSelectAll}>
+                                    Select all</Button>
+                                <Button size='big'
+                                    onClick={this.overwriteLabel}>
+                                    Assign Labels</Button>
+                                <Button size='big'
+                                    onClick={this.nextBatch}>
+                                    Skip
+                                </Button>
+                                <Button size='big'
+                                    onClick={this.submitTags}>
+                                    Submit
+                                </Button>
+                                </Button.Group>
+                                {/* <Button
+                                onClick={this.appendLabel}>
+                                Append
+                                </Button> */}
+                            </Grid.Column> 
+                            {/* <Grid.Column floated='right' width={9}>
+                                Accuracy: {this.props.metrics.accuracy.toPrecision(3)} | 
+                                Labeled: {this.props.metrics.counts.trn + this.props.metrics.counts.val} | 
+                                Unlabeled: {this.props.metrics.counts.unlabeled}
+                            </Grid.Column> */}
+                            <Grid.Column >
+                            <Table basic>
+                                <Table.Body>
+                                <Table.Row>
+                                    <Table.Cell>Accuracy: {this.props.metrics.accuracy.toPrecision(3)}</Table.Cell>
+                                    <Table.Cell>Labeled: {this.props.metrics.counts.trn + this.props.metrics.counts.val}</Table.Cell>
+                                    <Table.Cell>Unlabeled: {this.props.metrics.counts.unlabeled}</Table.Cell>
+                                </Table.Row>
+                                </Table.Body>
+                            </Table>
+                            </Grid.Column>       
+                            {/* <Grid.Column floated='right' width={3}>
+                                Accuracy: {this.props.metrics.accuracy.toPrecision(3)}
+                            </Grid.Column>
+                            <Grid.Column floated='right' width={3}>
+                                Labeled: {this.props.metrics.counts.trn + this.props.metrics.counts.val}
+                            </Grid.Column>
+                            <Grid.Column floated='right' width={3}>
+                                Unlabeled: {this.props.metrics.counts.unlabeled}
+                            </Grid.Column>                    */}
+                            </Grid.Row>
+                        </Grid>
+                        
+                        <Grid columns={1}>
+                            <Grid.Row>
+                                <Grid.Column>
+                                    <LabelSelector
+                                    options={this.state.labelOptions}
+                                    selected={this.state.selectedLabels}
+                                    updateLabels={this.updateLabels.bind(this)}/> 
+                                </Grid.Column>
+                            </Grid.Row>
+    
+
+                <Grid.Row>
                 <div style={{
                     display: "block",
                     minHeight: "1px",
@@ -240,7 +293,25 @@ class ImageViewer extends Component {
                     showLightboxThumbnails={true}
                     enableLightbox={true}/> 
                 </div>
-            </div>
+                </Grid.Row>
+{/* 
+                <Header as='h2'>Progress</Header>
+                <Grid.Row>
+                    <Table>
+                        <Table.Body>
+                        <Table.Row>
+                            <Table.Cell>Accuracy: {this.props.metrics.accuracy.toPrecision(3)}</Table.Cell>
+                            <Table.Cell>Labeled: {this.props.metrics.counts.trn + this.props.metrics.counts.val}</Table.Cell>
+                            <Table.Cell>Unlabeled: {this.props.metrics.counts.unlabeled}</Table.Cell>
+                        </Table.Row>
+                        </Table.Body>
+                    </Table>
+                </Grid.Row> */}
+
+              </Grid>
+            </Container>
+        </div>
+            
         );
     }
 }
@@ -289,6 +360,16 @@ const DEFAULT_LABELS = [
 ImageViewer.defaultProps = {
     labelOptions: DEFAULT_LABELS,
     selectedLabels: [],
+    metrics: {
+        accuracy: 0,
+        loss: 0,
+        counts: {
+            trn:0,
+            val:0,
+            tst:0,
+            unlabeled:0
+        }
+    }
 };
 
 function shuffleArray (array) {
@@ -363,6 +444,7 @@ export default compose(
             variables: { project: ownProps.project } 
         }),
         props: ({ data: { loading, refetch, metrics }}) => ({
+            metrics: metrics,
             refetchMetrics: refetch,
         })
     }),
