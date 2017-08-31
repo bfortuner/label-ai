@@ -50,6 +50,33 @@ def make_entry(labels=None, model_labels=None, model_probs=None):
     }
 
 
+def get_random_batch(proj_name, dset, shuffle=False, limit=20):
+    fold = load_fold(proj_name)
+    ids = list(fold[dset].keys())
+    if shuffle:
+        random.shuffle(ids)
+    image_data = []
+    for id_ in ids[:limit]:
+        image_data.append(make_image(id_, fold, dset))
+    return image_data
+
+
+def get_next_batch(proj_name, dset, limit=cfg.BATCH_SIZE):
+    fold = load_fold(proj_name)
+    preds_df = pd.read_csv(
+        get_fpath(proj_name, cfg.RANKINGS_FNAME), 
+        index_col=0)
+    i = 0
+    image_data = []
+    for id_, row in preds_df.iterrows():
+        if i > limit:
+            return image_data
+        if id_ in fold[dset]:
+            image_data.append(make_image(id_, fold, dset))
+            i += 1
+    return image_data
+
+
 def add_or_update_entry(fold, dset, id_, entry):
     print("Adding or updating entry")
     fold[dset][id_] = entry

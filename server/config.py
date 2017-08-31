@@ -15,6 +15,7 @@ METADATA_FPATH = os.path.join(PROJECT_PATH, 'metadata.csv')
 METRICS_FNAME = 'metrics.json'
 FOLD_FNAME = 'labels.json'
 PREDS_FNAME = 'predictions.json'
+RANKINGS_FNAME = 'rankings.csv'
 
 TRAIN = 'trn'
 VAL = 'val'

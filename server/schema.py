@@ -1,6 +1,7 @@
 import os
 import random
 from collections import namedtuple, OrderedDict
+import pandas as pd
 from graphql import (
     GraphQLField, GraphQLNonNull, GraphQLArgument,
     GraphQLObjectType, GraphQLList, GraphQLBoolean, GraphQLString,
@@ -154,11 +155,11 @@ def get_metrics(project_name):
             unlabeled=metrics['counts']['unlabeled']                                    
         )
     )
-    print("METRICS", m)
     return m
 
 
-def get_image_data(fold, dset, shuffle=False, limit=20):
+def get_random_batch(proj_name, dset, shuffle=False, limit=20):
+    fold = data.load_fold(proj_name)
     ids = list(fold[dset].keys())
     if shuffle:
         random.shuffle(ids)
@@ -166,6 +167,32 @@ def get_image_data(fold, dset, shuffle=False, limit=20):
     for id_ in ids[:limit]:
         image_data.append(make_image(id_, fold, dset))
     return image_data
+
+
+def get_ranked_batch(proj_name, dset, limit=cfg.BATCH_SIZE):
+    fold = data.load_fold(proj_name)
+    preds_df = pd.read_csv(
+        data.get_fpath(proj_name, cfg.RANKINGS_FNAME), 
+                       index_col=0)
+    i = 0
+    image_data = []
+    for id_, row in preds_df.iterrows():
+        if i > limit:
+            return image_data
+        if id_ in fold[dset]:
+            image_data.append(make_image(
+                id_, fold, dset))
+            i += 1
+    return image_data
+
+
+def get_image_list(proj_name, dset=cfg.UNLABELED):
+    if os.path.exists(data.get_fpath(proj_name, cfg.RANKINGS_FNAME)):
+        image_data = get_ranked_batch(proj_name, dset)
+    else:
+        image_data = get_random_batch(
+            proj_name, dset, shuffle=True)
+    return ImageList(images=image_data)
 
 
 def get_random_dset(val_ratio=cfg.VAL_FOLD_RATIO):
@@ -183,11 +210,7 @@ def save_image_data(fold, id_, tags, dset=None,
     data.update_counts(fold["name"])
 
 
-def get_image_list(project, dset=cfg.UNLABELED):
-    fold = data.load_fold(project)
-    image_data = get_image_data(fold, dset, shuffle=True, 
-                                limit=cfg.BATCH_SIZE)
-    return ImageList(images=image_data)
+
 
 
 def get_image(project, id_, dset=cfg.UNLABELED):
