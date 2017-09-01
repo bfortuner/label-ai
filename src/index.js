@@ -12,8 +12,8 @@ import './index.css';
 
 const client = new ApolloClient({
   networkInterface: createNetworkInterface({ 
-      //uri: 'http://24.5.150.30:5000/graphql'
-      uri: 'http://10.0.0.21:5000/graphql' 
+      uri: 'http://24.5.150.30:5000/graphql'
+      //uri: 'http://10.0.0.21:5000/graphql' 
   })
 });
 

@@ -1,8 +1,8 @@
 
 import os
 
-#ENDPOINT = 'http://24.5.150.30:5000'
-ENDPOINT = 'http://10.0.0.21:5000'
+ENDPOINT = 'http://24.5.150.30:5000'
+#ENDPOINT = 'http://10.0.0.21:5000'
 IMG_ENDPOINT = ENDPOINT + '/image'
 
 PROJECT_PATH = '/bigguy/data/dogscats'

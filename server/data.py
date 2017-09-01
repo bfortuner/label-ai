@@ -33,8 +33,8 @@ def init_dataset(name, input_dir, file_ext, label_names=None):
     for id_ in ids:
         fold['unlabeled'][id_] = id_
     os.makedirs(os.path.join(cfg.LABEL_PATH, name), exist_ok=True)
-    Path(get_fpath(name, cfg.METRICS_FNAME)).touch()
-    Path(get_fpath(name, cfg.PREDS_FNAME)).touch()
+    # Path(get_fpath(name, cfg.METRICS_FNAME)).touch()
+    # Path(get_fpath(name, cfg.PREDS_FNAME)).touch()
     utils.files.save_json(get_fpath(name, cfg.FOLD_FNAME), fold)
     return fold
 
@@ -48,33 +48,6 @@ def make_entry(labels=None, model_labels=None, model_probs=None):
         'model_labels': model_labels,
         'model_probs': model_probs,
     }
-
-
-def get_random_batch(proj_name, dset, shuffle=False, limit=20):
-    fold = load_fold(proj_name)
-    ids = list(fold[dset].keys())
-    if shuffle:
-        random.shuffle(ids)
-    image_data = []
-    for id_ in ids[:limit]:
-        image_data.append(make_image(id_, fold, dset))
-    return image_data
-
-
-def get_next_batch(proj_name, dset, limit=cfg.BATCH_SIZE):
-    fold = load_fold(proj_name)
-    preds_df = pd.read_csv(
-        get_fpath(proj_name, cfg.RANKINGS_FNAME), 
-        index_col=0)
-    i = 0
-    image_data = []
-    for id_, row in preds_df.iterrows():
-        if i > limit:
-            return image_data
-        if id_ in fold[dset]:
-            image_data.append(make_image(id_, fold, dset))
-            i += 1
-    return image_data
 
 
 def add_or_update_entry(fold, dset, id_, entry):
